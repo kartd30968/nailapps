@@ -675,14 +675,23 @@
 
     function showReceipt() {
         const lines = generateReceiptData();
+        
+        // 修正重點：改為 .slice(1, -1)
+        // 說明：lines[0] 是表頭，lines[最後] 是頁尾總計，中間的全部都是消費項目
+        const itemLines = lines.slice(1, -1); 
+
         const html = `
             <div class="receipt-header">
                 <h3>消費明細</h3>
                 <div class="receipt-date">${new Date().toLocaleString('zh-TW')}</div>
             </div>
-            ${lines.slice(3, -2).map(line => {
+            ${itemLines.map(line => {
+                // 將文字依照 "  " (兩個空白) 切割成 名稱 與 價格
                 const parts = line.split('  ');
-                return `<div class="receipt-row"><span>${parts[0]}</span><span>${parts[1] || ''}</span></div>`;
+                return `<div class="receipt-row">
+                            <span>${parts[0]}</span>
+                            <span>${parts[1] || ''}</span>
+                        </div>`;
             }).join('')}
             <div class="receipt-row total">
                 <span>總金額</span>
@@ -719,4 +728,5 @@
 </script>
 </body>
 </html>
+
 
