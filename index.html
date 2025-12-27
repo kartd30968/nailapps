@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RICH; BEAUTY LAB | 預算計算機</title>
+    <title>Jamie's Nail | 預算計算機</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -309,6 +309,26 @@
         }
         .input-box:focus { outline: none; border-color: var(--primary); background: #FFF; }
 
+        /* New: Discount Buttons */
+        .discount-presets {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .discount-btn {
+            flex: 1;
+            padding: 8px;
+            background: #F2EFEC;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-heading);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .discount-btn:hover { background: #E8E4E0; }
+        .discount-btn:active { background: var(--primary); color: white; transform: scale(0.98); }
+
         /* Sticky Footer */
         .sticky-footer {
             position: fixed;
@@ -449,7 +469,7 @@
 
 <div class="container">
     <header>
-        <div class="brand-name">計算機</div>
+        <div class="brand-name">Jamie's Nail</div>
         <div class="brand-sub">Price List</div>
     </header>
 
@@ -495,6 +515,13 @@
 
     <div class="card">
         <div class="section-title" style="margin-bottom:16px;"><i class="fa-solid fa-tag"></i> 折扣 / 調整</div>
+        
+        <div class="discount-presets">
+            <button class="discount-btn" onclick="applyPresetDiscount(0.9)">9折</button>
+            <button class="discount-btn" onclick="applyPresetDiscount(0.85)">8.5折</button>
+            <button class="discount-btn" onclick="applyPresetDiscount(0.8)">8折</button>
+        </div>
+
         <input type="number" id="discountInput" class="input-box" placeholder="輸入金額 (例如: -100)" oninput="updateDiscount(this.value)">
     </div>
 </div>
@@ -526,8 +553,7 @@
 </div>
 
 <script>
-    // --- Data Configuration (Based on New Price List Image) ---
-    // isGel: true means the "Feet +100" surcharge applies.
+    // --- Data Configuration ---
     const basePrices = [
         { name: '透明凝膠', price: 780, isGel: true },
         { name: '單色凝膠', price: 1000, isGel: true },
@@ -536,19 +562,17 @@
         { name: '法式', price: 1300, isGel: true },
         { name: '漸層', price: 1200, isGel: true },
         { name: '優惠款', price: 1399, isGel: true },
-        { name: '底色', price: 300, isGel: false }, // Assumed not subject to full set surcharge or unclear
+        { name: '底色', price: 300, isGel: false },
         { name: '手部基礎保養', price: 500, isGel: false },
         { name: '足部基礎保養', price: 600, isGel: false }
     ];
     
-    // Fixed add-ons from list
     const fixedAddons = [
         { id: 'repair', name: '補斷甲', price: 100, unit: '指' },
         { id: 'remove_part', name: '卸凝膠(4指下)', price: 50, unit: '指' },
-        { id: 'polish', name: '指甲油', price: 50, unit: '式' } // Assumed per service
+        { id: 'polish', name: '指甲油', price: 50, unit: '式' }
     ];
     
-    // Removal options (Consolidated)
     const removalOptions = [
         { id: 'rem_none', name: '無卸甲', price: 0 },
         { id: 'rem_shop_new', name: '本店卸甲續作', price: 200 },
@@ -560,7 +584,7 @@
     // --- State Management ---
     let state = {
         basePriceIdx: 0,
-        isFeet: false,     // New: Feet toggle state
+        isFeet: false,
         fixedCounts: {},
         customItems: [],
         removalOptionIdx: 0,
@@ -701,35 +725,39 @@
         state.discount = parseFloat(val) || 0;
         calcTotal();
     }
+    
+    // Calculate subtotal before discount (for percentage buttons)
+    function calculateSubtotal() {
+        let sub = 0;
+        const currentBase = basePrices[state.basePriceIdx];
+        sub += currentBase.price;
+        if (state.isFeet && currentBase.isGel) sub += 100;
+        
+        fixedAddons.forEach(item => sub += (state.fixedCounts[item.id] * item.price));
+        state.customItems.forEach(item => sub += (item.price * item.qty));
+        sub += removalOptions[state.removalOptionIdx].price;
+        return sub;
+    }
+
+    function applyPresetDiscount(rate) {
+        // Rate: 0.9 (9折), 0.85 (85折)...
+        const subtotal = calculateSubtotal();
+        // Discount amount = Subtotal * (1 - Rate)
+        // Round to nearest integer to avoid decimals
+        const discountAmount = Math.round(subtotal * (1 - rate));
+        
+        // Update input field (Negative value)
+        const val = -discountAmount;
+        document.getElementById('discountInput').value = val;
+        
+        // Update State
+        updateDiscount(val);
+    }
 
     // --- Calculation Logic ---
 
     function calcTotal() {
-        let total = 0;
-        const currentBase = basePrices[state.basePriceIdx];
-        
-        // 1. Base Price
-        total += currentBase.price;
-        
-        // 1.1 Feet Surcharge (Only for Gel items)
-        if (state.isFeet && currentBase.isGel) {
-            total += 100;
-        }
-
-        // 2. Fixed Add-ons
-        fixedAddons.forEach(item => {
-            total += (state.fixedCounts[item.id] * item.price);
-        });
-        
-        // 3. Custom Items
-        state.customItems.forEach(item => {
-            total += (item.price * item.qty);
-        });
-        
-        // 4. Removal
-        total += removalOptions[state.removalOptionIdx].price;
-        
-        // 5. Discount
+        let total = calculateSubtotal();
         total += state.discount;
 
         // Update UI
@@ -787,7 +815,7 @@
 
         const html = `
             <div class="receipt-header">
-                <h3>RICH; BEAUTY LAB</h3>
+                <h3>Jamie's Nail</h3>
                 <div class="receipt-date">${dateStr}</div>
             </div>
             
@@ -821,7 +849,7 @@
         const total = calcTotal();
         const dateStr = new Date().toLocaleString('zh-TW', { hour12: false });
         
-        let text = `RICH; BEAUTY LAB\n日期: ${dateStr}\n---------------------------\n`;
+        let text = `Jamie's Nail\n日期: ${dateStr}\n---------------------------\n`;
         
         items.forEach(item => {
             let line = item.name;
