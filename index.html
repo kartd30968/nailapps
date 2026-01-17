@@ -3,885 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jamie's Nail | 預算計算機</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <title>Jamie's Nail 報價系統 V4</title>
     <style>
         :root {
-            /* Palette: Korean Cream Style */
-            --bg-color: #F9F5F0;
-            --card-bg: #FFFFFF;
-            --primary: #C9B8A8; /* 奶茶色 */
-            --primary-dark: #A89586;
-            --text-main: #4A4A4A; /* 深灰 */
-            --text-heading: #5D5245; /* 深棕 */
-            --text-light: #999999;
-            --danger: #E58B8B;
-            --shadow: 0 4px 20px rgba(93, 82, 69, 0.05);
-            --radius: 16px;
+            --primary-color: #d4a5a5; /* 藕粉色主調 */
+            --primary-dark: #b58585;
+            --bg-color: #fdfbfb;
+            --text-color: #4a4a4a;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --accent-foot: #e8c495; /* 足部模式暖色 */
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 220px; /* 留給底部結帳區空間 */ }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-bottom: 110px; /* Space for sticky footer */
-        }
-
-        h1, h2, h3 { margin: 0; }
-
-        /* Container */
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* A. Header */
+        /* --- Header & Control --- */
         header {
-            text-align: center;
-            margin-bottom: 24px;
-            padding-top: 10px;
-        }
-        .brand-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 24px;
-            color: var(--text-heading);
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-        .brand-sub {
-            font-size: 12px;
-            color: var(--primary-dark);
-            letter-spacing: 2px;
-            margin-top: 4px;
-            text-transform: uppercase;
-        }
-
-        /* Card Style */
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            transition: transform 0.2s ease;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-heading);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-        }
-        .section-title i { color: var(--primary); }
-        
-        .section-note {
-            font-size: 12px;
-            color: var(--primary-dark);
-            background: rgba(201, 184, 168, 0.15);
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        /* Toggle Switch for Feet */
-        .toggle-switch {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .toggle-input { display: none; }
-        .toggle-slider {
-            position: relative;
-            width: 40px;
-            height: 22px;
-            background-color: #DDD;
-            border-radius: 22px;
-            transition: .3s;
-        }
-        .toggle-slider:before {
-            content: "";
-            position: absolute;
-            height: 18px;
-            width: 18px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            border-radius: 50%;
-            transition: .3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .toggle-input:checked + .toggle-slider { background-color: var(--primary); }
-        .toggle-input:checked + .toggle-slider:before { transform: translateX(18px); }
-        .toggle-label { font-size: 13px; font-weight: 500; color: var(--text-heading); }
-
-        /* B. Radio Selection (Capsule Style) */
-        .radio-group {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        .radio-option input { display: none; }
-        .radio-option label {
-            display: block;
-            text-align: center;
-            padding: 12px 8px;
-            background: #F2EFEC;
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .radio-option label small {
-            display: block;
-            margin-top: 4px;
-            opacity: 0.7;
-            font-size: 12px;
-        }
-        .radio-option input:checked + label {
-            background: var(--primary);
-            color: white;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(201, 184, 168, 0.4);
-        }
-        .radio-option input:checked + label small { opacity: 1; }
-
-        /* Stepper Control */
-        .stepper-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed #EEE;
-        }
-        .stepper-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        
-        .item-info { display: flex; flex-direction: column; }
-        .item-name { font-size: 15px; font-weight: 500; }
-        .item-price { font-size: 12px; color: var(--text-light); }
-
-        .stepper-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #F7F7F7;
-            padding: 4px;
-            border-radius: 20px;
-        }
-        .stepper-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: none;
-            background: #FFF;
-            color: var(--text-heading);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.1s;
-        }
-        .stepper-btn:active { transform: scale(0.9); background: var(--primary); color: white; }
-        .stepper-val {
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-            font-size: 14px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* D. Advanced & Dynamic Rows */
-        .tags-scroll {
-            display: flex;
-            overflow-x: auto;
-            gap: 8px;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-            scrollbar-width: none;
-        }
-        .tags-scroll::-webkit-scrollbar { display: none; }
-        
-        .tag-btn {
-            white-space: nowrap;
-            padding: 6px 14px;
-            border-radius: 20px;
-            background: #F2EFEC;
-            color: var(--text-heading);
-            font-size: 13px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .tag-btn:active { background: var(--primary); color: white; }
-
-        .dynamic-row {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr auto auto;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-            background: #FAFAFA;
-            padding: 8px;
-            border-radius: 12px;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .input-bare {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            color: var(--text-main);
-            padding: 4px;
-            border-bottom: 1px solid #DDD;
-            border-radius: 0;
-            transition: border-color 0.3s;
-        }
-        .input-bare:focus { outline: none; border-bottom-color: var(--primary); }
-        
-        .del-btn {
-            color: #CCC;
-            background: none;
-            border: none;
-            padding: 8px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .del-btn:hover { color: var(--danger); }
-
-        .add-custom-btn {
-            width: 100%;
-            padding: 12px;
-            border: 1px dashed var(--primary);
-            background: rgba(201, 184, 168, 0.1);
-            color: var(--primary-dark);
-            border-radius: 12px;
-            margin-top: 10px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .add-custom-btn:active { background: rgba(201, 184, 168, 0.2); }
-
-        /* F. Discount */
-        .input-box {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #EEE;
-            background: #F9F9F9;
-            border-radius: 12px;
-            font-size: 16px;
-            color: var(--text-main);
-        }
-        .input-box:focus { outline: none; border-color: var(--primary); background: #FFF; }
-
-        /* New: Discount Buttons */
-        .discount-presets {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .discount-btn {
-            flex: 1;
-            padding: 8px;
-            background: #F2EFEC;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            color: var(--text-heading);
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .discount-btn:hover { background: #E8E4E0; }
-        .discount-btn:active { background: var(--primary); color: white; transform: scale(0.98); }
-
-        /* Sticky Footer */
-        .sticky-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
-            padding: 16px 20px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
-        .total-display {
-            display: flex;
-            flex-direction: column;
-        }
-        .total-label { font-size: 12px; color: var(--text-light); }
-        .total-amount { font-size: 24px; font-weight: 700; color: var(--text-heading); }
-        
-        .footer-actions { display: flex; gap: 10px; }
-        .btn {
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.96); }
-        .btn-outline {
-            background: white;
-            border: 1px solid var(--primary);
-            color: var(--primary-dark);
-        }
-        .btn-primary {
-            background: var(--text-heading);
-            color: white;
-            box-shadow: 0 4px 12px rgba(93, 82, 69, 0.3);
+            border-bottom: 1px solid #eee;
+            padding: 10px 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        /* Bottom Sheet Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
+        .mode-switch {
+            display: flex; background: #eee; border-radius: 20px; padding: 4px; margin-bottom: 10px;
+        }
+        .mode-btn {
+            flex: 1; border: none; background: transparent; padding: 10px; border-radius: 16px;
+            font-weight: bold; color: #888; transition: all 0.2s; cursor: pointer;
+        }
+        .mode-btn.active { background: white; color: var(--text-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .mode-btn.foot-active { color: #8a6d3b; }
+
+        /* 足部模式時的視覺變化 */
+        body.foot-mode .mode-btn.active { background: var(--accent-foot); color: white; }
+        body.foot-mode { --primary-color: #e8c495; }
+
+        /* --- Category Tabs --- */
+        .category-scroll {
+            display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; scrollbar-width: none;
+        }
+        .cat-btn {
+            white-space: nowrap; padding: 6px 16px; border-radius: 20px; border: 1px solid #ddd;
+            background: white; color: #666; font-size: 14px; cursor: pointer;
+        }
+        .cat-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* --- Item Grid --- */
+        .item-container { padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .item-card {
+            background: white; padding: 15px; border-radius: var(--border-radius);
+            box-shadow: var(--shadow); border: 1px solid #f0f0f0; text-align: center; cursor: pointer;
+            transition: transform 0.1s; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .item-card:active { transform: scale(0.96); }
+        .item-name { font-size: 15px; font-weight: 500; margin-bottom: 5px; }
+        .item-price { font-size: 13px; color: #888; }
+        
+        /* 自訂輸入區 */
+        .custom-input-group {
+            grid-column: span 2; display: flex; gap: 8px; background: white; padding: 10px;
+            border-radius: var(--border-radius); box-shadow: var(--shadow);
+        }
+        .custom-input-group input {
+            flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 8px; outline: none;
+        }
+        .custom-btn {
+            background: var(--text-color); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold;
+        }
+
+        /* --- Cart List --- */
+        .cart-section { padding: 0 15px 20px 15px; }
+        .cart-title { font-size: 14px; color: #999; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .cart-item {
+            display: flex; align-items: center; background: white; margin-bottom: 8px;
+            padding: 10px; border-radius: 10px; border-left: 4px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: all 0.3s;
+        }
+        .cart-item.discount-active { border-left-color: #ff6b6b; background: #fff5f5; }
+        
+        .check-col { padding-right: 10px; display: flex; flex-direction: column; align-items: center; }
+        .discount-checkbox { transform: scale(1.3); accent-color: #ff6b6b; }
+        .discount-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+        .info-col { flex: 1; }
+        .edit-input {
+            width: 100%; border: none; background: transparent; outline: none;
+            font-size: 15px; color: #333; margin-bottom: 2px;
+        }
+        .edit-price {
+            width: 100%; border: none; background: transparent; outline: none;
+            font-size: 14px; color: #666; font-weight: bold;
+        }
+        .cart-item.adjustment .edit-price { color: #d63031; }
+
+        .action-col { padding-left: 10px; }
+        .del-btn {
+            background: #f1f1f1; color: #999; border: none; width: 30px; height: 30px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- Checkout Footer --- */
+        .checkout-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-top: 1px solid #eee;
+            padding: 15px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
             z-index: 200;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
         }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
         
-        .modal-content {
-            background: #FFF;
-            width: 100%;
-            max-width: 480px;
-            border-radius: 24px 24px 0 0;
-            padding: 24px;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            max-height: 80vh;
-            overflow-y: auto;
+        .discount-options { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .disc-btn {
+            flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 8px;
+            font-size: 13px; color: #666; white-space: nowrap; min-width: 60px; text-align: center;
         }
-        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .disc-btn.selected { background: #4a4a4a; color: white; border-color: #4a4a4a; }
+        
+        .total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+        .total-label { font-size: 14px; color: #888; }
+        .total-amount { font-size: 28px; font-weight: 800; color: #333; line-height: 1; }
+        
+        .action-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+        .btn-reset { background: #f1f1f1; color: #666; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+        .btn-copy { background: #4a4a4a; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-copy:active { background: #222; }
 
-        /* Receipt Style */
-        .receipt {
-            border: 1px solid #EEE;
-            padding: 20px;
-            background: #FAFAFA;
-            border-radius: 8px;
-            font-family: 'Noto Sans TC', sans-serif; 
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 200px; background-color: rgba(0,0,0,0.8); color: #fff;
+            text-align: center; border-radius: 25px; padding: 12px; position: fixed; z-index: 300;
+            left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px;
         }
-        .receipt-header { text-align: center; border-bottom: 2px dashed #DDD; padding-bottom: 15px; margin-bottom: 15px; }
-        .receipt-header h3 { font-size: 18px; color: var(--text-heading); font-family: 'Playfair Display', serif; }
-        
-        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-        
-        .receipt-row.total { 
-            border-top: 2px dashed #DDD; 
-            padding-top: 15px; 
-            font-weight: 700; 
-            font-size: 18px; 
-            margin-top: 15px;
-            color: var(--text-heading);
-        }
-        .receipt-date { font-size: 12px; color: #888; margin-top: 5px; font-family: monospace; }
-        
-        .close-btn {
-            width: 100%;
-            padding: 15px;
-            background: #F2EFEC;
-            border: none;
-            border-radius: 12px;
-            color: var(--text-main);
-            margin-top: 20px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 500;
-        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(93, 82, 69, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-            pointer-events: none;
-            z-index: 300;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(-5px); }
-        
-        .text-danger { color: var(--danger); }
+        @keyframes fadein { from {bottom: 60px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 60px; opacity: 0;} }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="brand-name">Jamie's Nail</div>
-        <div class="brand-sub">Price List</div>
-    </header>
-
-    <div class="card">
-        <div class="section-header">
-            <div class="section-title"><i class="fa-solid fa-gem"></i> 基礎項目</div>
-            <label class="toggle-switch">
-                <input type="checkbox" class="toggle-input" id="feetToggle" onchange="toggleFeet()">
-                <div class="toggle-slider"></div>
-                <span class="toggle-label">足部 (+$100)</span>
-            </label>
+<header>
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="setMode('hand')">🖐️ 手部</button>
+        <button class="mode-btn" onclick="setMode('foot')">🦶 足部 (+$100)</button>
+    </div>
+    <div class="category-scroll" id="categoryList">
         </div>
-        <small class="section-note"><i class="fa-solid fa-circle-info"></i> 凝膠項目含基礎保養、建構加厚</small>
-        
-        <div class="radio-group" id="basePriceGroup"></div>
-    </div>
+</header>
 
-    <div class="card">
-        <div class="section-title" style="margin-bottom:16px;"><i class="fa-solid fa-toolbox"></i> 加購 / 維修</div>
-        <div id="fixedAddonsList"></div>
-    </div>
-
-    <div class="card">
-        <div class="section-title" style="margin-bottom:10px;"><i class="fa-solid fa-paintbrush"></i> 造型設計 ($100/起)</div>
-        
-        <div class="tags-scroll">
-            <button class="tag-btn" onclick="addCustomItem('單指造型', 100)">+ 單指造型 $100</button>
-            <button class="tag-btn" onclick="addCustomItem('複雜造型', 150)">+ 複雜造型 $150</button>
-            <button class="tag-btn" onclick="addCustomItem('特殊飾品', 50)">+ 貼紙/飾品 $50</button>
+<main>
+    <div class="item-container" id="itemList">
         </div>
 
-        <div id="customItemsList"></div>
-
-        <button class="add-custom-btn" onclick="addCustomItem('', 0)">
-            <i class="fa-solid fa-plus"></i> 自訂項目
-        </button>
-    </div>
-
-    <div class="card">
-        <div class="section-title" style="margin-bottom:16px;"><i class="fa-solid fa-hand-sparkles"></i> 卸甲服務</div>
-        <div class="radio-group" id="removalGroup" style="margin-bottom: 15px;"></div>
-    </div>
-
-    <div class="card">
-        <div class="section-title" style="margin-bottom:16px;"><i class="fa-solid fa-tag"></i> 折扣 / 調整</div>
-        
-        <div class="discount-presets">
-            <button class="discount-btn" onclick="applyPresetDiscount(0.9)">9折</button>
-            <button class="discount-btn" onclick="applyPresetDiscount(0.85)">8.5折</button>
-            <button class="discount-btn" onclick="applyPresetDiscount(0.8)">8折</button>
+    <div class="cart-section">
+        <div class="cart-title">
+            <span>已選項目 (可編輯名稱與價格)</span>
+            <span style="font-size:12px">打折?</span>
         </div>
+        <div id="cartList">
+            </div>
+    </div>
+</main>
 
-        <input type="number" id="discountInput" class="input-box" placeholder="輸入金額 (例如: -100)" oninput="updateDiscount(this.value)">
+<div class="checkout-bar">
+    <div class="discount-options">
+        <div class="disc-btn selected" onclick="setDiscount(1, this)">原價</div>
+        <div class="disc-btn" onclick="setDiscount(0.95, this)">95折</div>
+        <div class="disc-btn" onclick="setDiscount(0.9, this)">9折</div>
+        <div class="disc-btn" onclick="setDiscount(0.85, this)">85折</div>
+        <div class="disc-btn" onclick="setDiscount(0.8, this)">8折</div>
+    </div>
+
+    <div class="total-row">
+        <div class="total-label">總金額 Total</div>
+        <div class="total-amount" id="finalTotal">$0</div>
+    </div>
+
+    <div class="action-row">
+        <button class="btn-reset" onclick="resetCart()">🗑️ 清空</button>
+        <button class="btn-copy" onclick="copyReceipt()">📋 複製明細</button>
     </div>
 </div>
 
-<div class="sticky-footer">
-    <div class="total-display">
-        <span class="total-label">預估金額</span>
-        <span class="total-amount" id="footerTotal">$0</span>
-    </div>
-    <div class="footer-actions">
-        <button class="btn btn-outline" onclick="copyReceipt()">
-            <i class="fa-regular fa-copy"></i> 複製
-        </button>
-        <button class="btn btn-primary" onclick="showReceipt()">
-            <i class="fa-solid fa-list-check"></i> 明細
-        </button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-    <div class="modal-content">
-        <div class="receipt" id="receiptContent"></div>
-        <button class="close-btn" onclick="toggleModal(false)">關閉</button>
-    </div>
-</div>
-
-<div class="toast" id="toast">
-    <i class="fa-solid fa-check"></i> 已複製明細到剪貼簿
-</div>
+<div id="toast">已複製到剪貼簿</div>
 
 <script>
-    // --- Data Configuration ---
-    const basePrices = [
-        { name: '透明凝膠', price: 880, isGel: true },
-        { name: '單色凝膠', price: 1000, isGel: true },
-        { name: '鏡面粉', price: 1200, isGel: true },
-        { name: '貓眼', price: 1100, isGel: true },
-        { name: '法式', price: 1400, isGel: true },
-        { name: '漸層', price: 1200, isGel: true },
-        { name: '優惠款', price: 1499, isGel: true },
-        { name: '底色', price: 300, isGel: false },
-        { name: '手部基礎保養', price: 500, isGel: false },
-        { name: '足部基礎保養', price: 600, isGel: false },
-        { name: '足部嫩膚保養', price: 800, isGel: false },
-        { name: '足部深層保養', price: 1100, isGel: false }
-    ];
-    
-    const fixedAddons = [
-        { id: 'repair', name: '補斷甲', price: 100, unit: '指' },
-        { id: 'remove_part', name: '卸凝膠(4指下)', price: 50, unit: '指' },
-        { id: 'polish', name: '指甲油', price: 50, unit: '式' }
-    ];
-    
-    const removalOptions = [
-        { id: 'rem_none', name: '無卸甲', price: 0 },
-        { id: 'rem_shop_new', name: '本店卸甲續作', price: 200 },
-        { id: 'rem_other_new', name: '他店卸甲續作', price: 300 },
-        { id: 'rem_shop_pure', name: '本店純卸甲', price: 500 },
-        { id: 'rem_other_pure', name: '他店純卸甲', price: 600 }
-    ];
-
-    // --- State Management ---
-    let state = {
-        basePriceIdx: 0,
-        isFeet: false,
-        fixedCounts: {},
-        customItems: [],
-        removalOptionIdx: 0,
-        discount: 0
+    // ==========================================
+    // 1. 設定檔 (Configuration) - 您可以在此修改價格
+    // ==========================================
+    const CONFIG = {
+        footSurcharge: 100, // 足部加價金額
+        categories: [
+            { id: 'care', name: '基礎保養' },
+            { id: 'gel', name: '凝膠項目' },
+            { id: 'art', name: '造型設計' },
+            { id: 'remove', name: '卸甲/維修' },
+            { id: 'adjust', name: '調整/折扣' }
+        ],
+        // 服務菜單
+        menu: {
+            care: [
+                { name: '基礎保養', price: 600 },
+                { name: '深層保養', price: 1200 },
+                { name: '去硬皮', price: 300 }
+            ],
+            gel: [
+                { name: '透明凝膠', price: 800 },
+                { name: '單色凝膠', price: 1000 },
+                { name: '貓眼凝膠', price: 1100 },
+                { name: '漸層/法式', price: 1200 },
+                { name: '本月優惠款', price: 1299, isPromo: true }, // 特殊標記，不一定自動加價，看邏輯
+                { name: '暈染造型', price: 1300 }
+            ],
+            art: [
+                { name: '造型(小)', price: 100 },
+                { name: '造型(中)', price: 150 },
+                { name: '造型(大)', price: 200 },
+                { name: '貼紙/飾品', price: 50 },
+                { name: '補強(單指)', price: 100 }
+            ],
+            remove: [
+                { name: '本店卸甲續作', price: 200 },
+                { name: '本店卸甲不續', price: 400 },
+                { name: '他店卸甲續作', price: 300 },
+                { name: '他店卸甲不續', price: 500 }
+            ],
+            adjust: [
+                { name: '首客折抵', price: -100, isFlat: true },
+                { name: '訂金扣除', price: -500, isFlat: true },
+                { name: '延誤折抵', price: -200, isFlat: true }
+            ]
+        }
     };
 
-    // Initialize fixed counts
-    fixedAddons.forEach(item => state.fixedCounts[item.id] = 0);
+    // ==========================================
+    // 2. 狀態管理 (State)
+    // ==========================================
+    let state = {
+        mode: 'hand', // 'hand' or 'foot'
+        currentCat: 'gel',
+        cart: [], // { id, name, price, discountActive }
+        globalDiscount: 1 // 1 = 原價, 0.9 = 9折
+    };
 
-    // --- Initialization ---
-    document.addEventListener('DOMContentLoaded', () => {
-        renderBasePrices();
-        renderFixedAddons();
-        renderRemovalOptions();
-        calcTotal();
-    });
-
-    // --- Render Functions ---
-    function renderBasePrices() {
-        const container = document.getElementById('basePriceGroup');
-        container.innerHTML = basePrices.map((item, idx) => `
-            <div class="radio-option">
-                <input type="radio" name="basePrice" id="base_${idx}" 
-                       value="${idx}" ${idx === 0 ? 'checked' : ''} onchange="setBasePrice(${idx})">
-                <label for="base_${idx}">
-                    ${item.name}
-                    <small>$${item.price}</small>
-                </label>
-            </div>
-        `).join('');
+    // 嘗試讀取 LocalStorage
+    const savedState = localStorage.getItem('jamieNailStateV4');
+    if (savedState) {
+        const parsed = JSON.parse(savedState);
+        state.cart = parsed.cart || [];
+        // 其他狀態重置，避免混亂
     }
 
-    function renderFixedAddons() {
-        const container = document.getElementById('fixedAddonsList');
-        container.innerHTML = fixedAddons.map(item => `
-            <div class="stepper-row">
-                <div class="item-info">
-                    <span class="item-name">${item.name}</span>
-                    <span class="item-price">$${item.price}/${item.unit}</span>
-                </div>
-                <div class="stepper-control">
-                    <button class="stepper-btn" onclick="updateFixedStepper('${item.id}', -1)">-</button>
-                    <span class="stepper-val" id="val-${item.id}">0</span>
-                    <button class="stepper-btn" onclick="updateFixedStepper('${item.id}', 1)">+</button>
-                </div>
-            </div>
-        `).join('');
+    // ==========================================
+    // 3. 核心功能 (Functions)
+    // ==========================================
+
+    // 初始化
+    function init() {
+        renderCategories();
+        renderItems();
+        renderCart();
+        updateTotal();
     }
 
-    function renderRemovalOptions() {
-        const container = document.getElementById('removalGroup');
-        container.innerHTML = removalOptions.map((item, idx) => `
-            <div class="radio-option">
-                <input type="radio" name="removal" id="rem_${idx}" 
-                       value="${idx}" ${idx === 0 ? 'checked' : ''} onchange="setRemovalOption(${idx})">
-                <label for="rem_${idx}">
-                    ${item.name}
-                    <small>${item.price > 0 ? '$'+item.price : '--'}</small>
-                </label>
-            </div>
-        `).join('');
-    }
-
-    function renderCustomRows() {
-        const container = document.getElementById('customItemsList');
-        container.innerHTML = '';
-        state.customItems.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'dynamic-row';
-            div.innerHTML = `
-                <input type="text" class="input-bare" value="${item.name}" placeholder="造型名稱" onchange="updateCustomItem(${index}, 'name', this.value)">
-                <input type="number" inputmode="decimal" class="input-bare" value="${item.price}" placeholder="$" onclick="this.select()" onchange="updateCustomItem(${index}, 'price', this.value)">
-                
-                <div class="stepper-control" style="background: white; border: 1px solid #EEE;">
-                    <button class="stepper-btn" style="width:24px; height:24px; font-size:12px;" onclick="updateCustomQty(${index}, -1)">-</button>
-                    <span class="stepper-val" style="font-size:12px; min-width:16px;">${item.qty}</span>
-                    <button class="stepper-btn" style="width:24px; height:24px; font-size:12px;" onclick="updateCustomQty(${index}, 1)">+</button>
-                </div>
-                
-                <button class="del-btn" onclick="deleteCustomItem(${index})"><i class="fa-solid fa-xmark"></i></button>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    // --- Action Handlers ---
-
-    function setBasePrice(idx) {
-        state.basePriceIdx = idx;
-        calcTotal();
-    }
-    
-    function toggleFeet() {
-        state.isFeet = document.getElementById('feetToggle').checked;
-        calcTotal();
-    }
-
-    function setRemovalOption(idx) {
-        state.removalOptionIdx = idx;
-        calcTotal();
-    }
-
-    function updateFixedStepper(id, change) {
-        let newVal = state.fixedCounts[id] + change;
-        if (newVal < 0) newVal = 0;
-        state.fixedCounts[id] = newVal;
-        document.getElementById(`val-${id}`).innerText = newVal;
-        calcTotal();
-    }
-
-    function addCustomItem(name = '', price = 0) {
-        state.customItems.push({ name: name, price: price, qty: 1 });
-        renderCustomRows();
-        calcTotal();
-    }
-
-    function updateCustomItem(index, field, value) {
-        if (field === 'price') value = Number(value);
-        state.customItems[index][field] = value;
-        calcTotal();
-    }
-
-    function updateCustomQty(index, change) {
-        let newVal = state.customItems[index].qty + change;
-        if (newVal < 1) newVal = 1; 
-        state.customItems[index].qty = newVal;
-        renderCustomRows();
-        calcTotal();
-    }
-
-    function deleteCustomItem(index) {
-        state.customItems.splice(index, 1);
-        renderCustomRows();
-        calcTotal();
-    }
-
-    function updateDiscount(val) {
-        state.discount = parseFloat(val) || 0;
-        calcTotal();
-    }
-    
-    // Calculate subtotal before discount (for percentage buttons)
-    function calculateSubtotal() {
-        let sub = 0;
-        const currentBase = basePrices[state.basePriceIdx];
-        sub += currentBase.price;
-        if (state.isFeet && currentBase.isGel) sub += 100;
+    // 切換 手部/足部
+    function setMode(mode) {
+        state.mode = mode;
         
-        fixedAddons.forEach(item => sub += (state.fixedCounts[item.id] * item.price));
-        state.customItems.forEach(item => sub += (item.price * item.qty));
-        sub += removalOptions[state.removalOptionIdx].price;
-        return sub;
-    }
-
-    function applyPresetDiscount(rate) {
-        // Rate: 0.9 (9折), 0.85 (85折)...
-        const subtotal = calculateSubtotal();
-        // Discount amount = Subtotal * (1 - Rate)
-        // Round to nearest integer to avoid decimals
-        const discountAmount = Math.round(subtotal * (1 - rate));
-        
-        // Update input field (Negative value)
-        const val = -discountAmount;
-        document.getElementById('discountInput').value = val;
-        
-        // Update State
-        updateDiscount(val);
-    }
-
-    // --- Calculation Logic ---
-
-    function calcTotal() {
-        let total = calculateSubtotal();
-        total += state.discount;
-
-        // Update UI
-        document.getElementById('footerTotal').innerText = `$${total.toLocaleString()}`;
-        return total;
-    }
-
-    // --- Modal & Receipt Logic ---
-
-    function getReceiptItems() {
-        let items = [];
-        
-        // Base
-        const base = basePrices[state.basePriceIdx];
-        let baseName = base.name;
-        let basePrice = base.price;
-        
-        if (state.isFeet && base.isGel) {
-            baseName += ' (足部)';
-            basePrice += 100;
+        // UI 更新
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        if (mode === 'foot') {
+            document.querySelector('button[onclick="setMode(\'foot\')"]').classList.add('active');
+            document.body.classList.add('foot-mode');
+        } else {
+            document.querySelector('button[onclick="setMode(\'hand\')"]').classList.add('active');
+            document.body.classList.remove('foot-mode');
         }
-        items.push({ name: baseName, price: basePrice, type: 'base' });
 
-        // Fixed
-        fixedAddons.forEach(item => {
-            const qty = state.fixedCounts[item.id];
-            if (qty > 0) {
-                items.push({ name: item.name, price: item.price * qty, qty: qty, type: 'fixed' });
+        // 重新渲染項目價格 (預覽用)
+        renderItems();
+    }
+
+    // 切換分類
+    function setCategory(catId) {
+        state.currentCat = catId;
+        renderCategories();
+        renderItems();
+    }
+
+    // 渲染分類按鈕
+    function renderCategories() {
+        const container = document.getElementById('categoryList');
+        container.innerHTML = CONFIG.categories.map(cat => `
+            <button class="cat-btn ${state.currentCat === cat.id ? 'active' : ''}" 
+                    onclick="setCategory('${cat.id}')">
+                ${cat.name}
+            </button>
+        `).join('');
+    }
+
+    // 渲染服務項目
+    function renderItems() {
+        const container = document.getElementById('itemList');
+        const items = CONFIG.menu[state.currentCat];
+        let html = '';
+
+        // 如果是造型或調整，顯示自訂輸入框
+        if (state.currentCat === 'art' || state.currentCat === 'adjust') {
+            html += `
+                <div class="custom-input-group">
+                    <input type="text" id="customName" placeholder="項目名稱">
+                    <input type="number" id="customPrice" placeholder="金額">
+                    <button class="custom-btn" onclick="addCustomItem()">加入</button>
+                </div>
+            `;
+        }
+
+        // 產生按鈕列表
+        html += items.map(item => {
+            // 計算顯示價格
+            let displayPrice = item.price;
+            let displayName = item.name;
+            let isPlus = false;
+
+            // 只有非固定價格項目 (isFlat != true) 且在足部模式下才加價
+            // 這裡假設所有常規項目都受足部加價影響，除了調整類
+            if (state.mode === 'foot' && !item.isFlat && state.currentCat !== 'adjust') {
+                displayPrice += CONFIG.footSurcharge;
+                displayName = `足部${item.name}`;
+                isPlus = true;
+            } else if (state.mode === 'hand' && !item.isFlat && state.currentCat !== 'adjust') {
+                displayName = `手部${item.name}`;
+            }
+
+            return `
+                <div class="item-card" onclick="addToCart('${displayName}', ${displayPrice})">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price" style="${isPlus ? 'color:#d63031;font-weight:bold' : ''}">
+                        $${displayPrice}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    // 加入購物車
+    function addToCart(name, price) {
+        const newItem = {
+            id: Date.now(),
+            name: name,
+            price: parseInt(price),
+            discountActive: false // 預設不打折
+        };
+        state.cart.push(newItem);
+        saveState();
+        renderCart();
+        updateTotal();
+    }
+
+    // 加入自訂項目
+    function addCustomItem() {
+        const nameInput = document.getElementById('customName');
+        const priceInput = document.getElementById('customPrice');
+        const name = nameInput.value.trim();
+        const price = parseInt(priceInput.value);
+
+        if (name && !isNaN(price)) {
+            let finalName = name;
+            // 如果是在足部模式且不是負數調整，自動加上前綴方便辨識 (可選)
+            if (state.mode === 'foot' && price > 0) finalName = `(足) ${name}`;
+            
+            addToCart(finalName, price);
+            nameInput.value = '';
+            priceInput.value = '';
+        }
+    }
+
+    // 渲染購物車 (核心)
+    function renderCart() {
+        const container = document.getElementById('cartList');
+        if (state.cart.length === 0) {
+            container.innerHTML = '<div style="text-align:center;color:#ccc;padding:20px;">尚無項目</div>';
+            return;
+        }
+
+        container.innerHTML = state.cart.map((item, index) => {
+            const isNegative = item.price < 0;
+            const itemClass = isNegative ? 'cart-item adjustment' : 
+                              (item.discountActive ? 'cart-item discount-active' : 'cart-item');
+            
+            return `
+                <div class="${itemClass}">
+                    <div class="check-col">
+                        <input type="checkbox" class="discount-checkbox" 
+                               onchange="toggleDiscount(${index})" 
+                               ${item.discountActive ? 'checked' : ''}
+                               ${isNegative ? 'disabled' : ''}> ${!isNegative ? '<span class="discount-label">折扣</span>' : ''}
+                    </div>
+                    <div class="info-col">
+                        <input type="text" class="edit-input" value="${item.name}" 
+                               onchange="updateItemName(${index}, this.value)">
+                        <input type="number" class="edit-price" value="${item.price}" 
+                               onchange="updateItemPrice(${index}, this.value)">
+                    </div>
+                    <div class="action-col">
+                        <button class="del-btn" onclick="removeItem(${index})">✕</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 購物車操作函式
+    function removeItem(index) {
+        state.cart.splice(index, 1);
+        saveState();
+        renderCart();
+        updateTotal();
+    }
+
+    function updateItemName(index, val) {
+        state.cart[index].name = val;
+        saveState();
+    }
+
+    function updateItemPrice(index, val) {
+        state.cart[index].price = parseInt(val);
+        saveState();
+        updateTotal();
+    }
+
+    function toggleDiscount(index) {
+        state.cart[index].discountActive = !state.cart[index].discountActive;
+        saveState();
+        renderCart(); // 重新渲染以更新背景色
+        updateTotal();
+    }
+
+    // 設定全域折扣
+    function setDiscount(rate, btnElement) {
+        state.globalDiscount = rate;
+        
+        // 更新按鈕樣式
+        document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
+        btnElement.classList.add('selected');
+        
+        updateTotal();
+    }
+
+    // 計算總金額 (Logic V4.0)
+    function updateTotal() {
+        let total = 0;
+        
+        state.cart.forEach(item => {
+            if (item.discountActive) {
+                // 有勾選折扣的項目：打折後四捨五入
+                total += Math.round(item.price * state.globalDiscount);
+            } else {
+                // 沒勾選的項目：原價 (包含負數調整)
+                total += item.price;
             }
         });
 
-        // Custom
-        state.customItems.forEach(item => {
-            items.push({ name: item.name || '造型', price: item.price * item.qty, qty: item.qty, type: 'custom' });
-        });
-
-        // Removal
-        const remOpt = removalOptions[state.removalOptionIdx];
-        if (remOpt.price > 0 || state.removalOptionIdx > 0) {
-            items.push({ name: remOpt.name, price: remOpt.price, type: 'removal' });
-        }
-
-        // Discount
-        if (state.discount !== 0) {
-            items.push({ name: '折扣/調整', price: state.discount, type: 'discount' });
-        }
-
-        return items;
+        document.getElementById('finalTotal').innerText = '$' + total;
     }
 
-    function showReceipt() {
-        const items = getReceiptItems();
-        const total = calcTotal();
-        const dateStr = new Date().toLocaleString('zh-TW', { hour12: false, dateStyle: 'long', timeStyle: 'short' });
-
-        const html = `
-            <div class="receipt-header">
-                <h3>Jamie's Nail</h3>
-                <div class="receipt-date">${dateStr}</div>
-            </div>
-            
-            ${items.map(item => {
-                let nameStr = item.name;
-                if (item.qty && item.qty > 1) nameStr += ` <small style="color:#999">x${item.qty}</small>`;
-                
-                const priceClass = item.type === 'discount' ? 'text-danger' : '';
-                const displayPrice = item.price >= 0 ? `$${item.price}` : `-$${Math.abs(item.price)}`;
-
-                return `
-                    <div class="receipt-row">
-                        <span>${nameStr}</span>
-                        <span class="${priceClass}">${displayPrice}</span>
-                    </div>
-                `;
-            }).join('')}
-
-            <div class="receipt-row total">
-                <span>總金額</span>
-                <span>$${total.toLocaleString()}</span>
-            </div>
-        `;
-
-        document.getElementById('receiptContent').innerHTML = html;
-        toggleModal(true);
+    function resetCart() {
+        if(confirm('確定要清空購物車嗎？')) {
+            state.cart = [];
+            saveState();
+            renderCart();
+            updateTotal();
+        }
     }
 
+    function saveState() {
+        localStorage.setItem('jamieNailStateV4', JSON.stringify({ cart: state.cart }));
+    }
+
+    // ==========================================
+    // 4. 輸出功能 (Generate Receipt)
+    // ==========================================
     function copyReceipt() {
-        const items = getReceiptItems();
-        const total = calcTotal();
-        const dateStr = new Date().toLocaleString('zh-TW', { hour12: false });
-        
-        let text = `Jamie's Nail\n日期: ${dateStr}\n---------------------------\n`;
-        
-        items.forEach(item => {
-            let line = item.name;
-            if (item.qty && item.qty > 1) line += ` x${item.qty}`;
-            line += `  $${item.price}`;
-            text += line + '\n';
+        if (state.cart.length === 0) return;
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        let text = `【Jamie's Nail 服務明細】\n`;
+        text += `📅 ${dateStr}\n\n`;
+
+        // 分類顯示項目 (邏輯：只要在清單裡就列出來)
+        state.cart.forEach(item => {
+            let line = `▪️ ${item.name} $${item.price}`;
+            
+            // 只有當該項目真的被打折了 (開關開啟 + 全域折扣不是原價)
+            if (item.discountActive && state.globalDiscount < 1) {
+                const discountedPrice = Math.round(item.price * state.globalDiscount);
+                const discountText = state.globalDiscount === 0.9 ? '9折' : 
+                                     state.globalDiscount === 0.85 ? '85折' : 
+                                     state.globalDiscount === 0.8 ? '8折' : 
+                                     state.globalDiscount === 0.95 ? '95折' : '折扣';
+                line += ` (${discountText}後 $${discountedPrice})`;
+            }
+            
+            text += `${line}\n`;
         });
 
-        text += `---------------------------\n總計  $${total}`;
-        
+        text += `\n-------------------\n`;
+        text += `總金額：${document.getElementById('finalTotal').innerText}`;
+
+        // 複製到剪貼簿
         navigator.clipboard.writeText(text).then(() => {
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }).catch(err => {
             alert('複製失敗，請手動截圖');
         });
     }
 
-    function toggleModal(show) {
-        const el = document.getElementById('modalOverlay');
-        if (show) el.classList.add('active');
-        else el.classList.remove('active');
-    }
-
-    function closeModal(e) {
-        if (e.target.id === 'modalOverlay') toggleModal(false);
-    }
+    // 啟動
+    init();
 
 </script>
 </body>
 </html>
-
