@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jamie's Nail 報價系統 V4</title>
+    <title>Jamie's Nail 報價系統 V4.1</title>
     <style>
         :root {
             --primary-color: #d4a5a5; /* 藕粉色主調 */
@@ -17,7 +17,7 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 220px; /* 留給底部結帳區空間 */ }
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 240px; /* 留給底部結帳區更多空間 */ }
 
         /* --- Header & Control --- */
         header {
@@ -116,12 +116,14 @@
             z-index: 200;
         }
         
-        .discount-options { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .discount-options { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
         .disc-btn {
-            flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 8px;
-            font-size: 13px; color: #666; white-space: nowrap; min-width: 60px; text-align: center;
+            flex: 1; padding: 10px 5px; border: 1px solid #ddd; background: white; border-radius: 8px;
+            font-size: 13px; color: #666; white-space: nowrap; text-align: center; cursor: pointer;
         }
-        /* --- [新增] 自訂折扣輸入框樣式 --- */
+        .disc-btn.selected { background: #4a4a4a; color: white; border-color: #4a4a4a; }
+        
+        /* 自訂折扣輸入框樣式 */
         .disc-input-wrapper {
             flex: 1.5; /* 比按鈕稍微寬一點 */
             position: relative; display: flex; align-items: center;
@@ -131,7 +133,7 @@
             border: 1px solid #ddd; border-radius: 8px;
             font-size: 14px; text-align: center; outline: none;
             background: #fff; color: #333; font-weight: bold;
-            transition: border 0.2s;
+            transition: border 0.2s; height: 38px; /* 與按鈕等高 */
         }
         .disc-input-wrapper input:focus { border-color: var(--primary-color); background: #fffbfb; }
         .disc-unit { 
@@ -139,29 +141,18 @@
             font-size: 12px; pointer-events: none; font-weight: normal; 
         }
 
-        .disc-btn.selected { background: #4a4a4a; color: white; border-color: #4a4a4a; }
-        
         .total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
         .total-label { font-size: 14px; color: #888; }
         .total-amount { font-size: 28px; font-weight: 800; color: #333; line-height: 1; }
         
-        .action-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+        /* 底部按鈕三欄排列 */
+        .action-row { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
         .btn-reset { background: #f1f1f1; color: #666; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+        .btn-view { background: #e3e3e3; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
         .btn-copy { background: #4a4a4a; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-copy:active { background: #222; }
 
-        /* Toast Notification */
-        #toast {
-            visibility: hidden; min-width: 200px; background-color: rgba(0,0,0,0.8); color: #fff;
-            text-align: center; border-radius: 25px; padding: 12px; position: fixed; z-index: 300;
-            left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px;
-        }
-        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-
-        @keyframes fadein { from {bottom: 60px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 60px; opacity: 0;} }
-
-                /* --- [新增] 明細彈窗樣式 --- */
+        /* --- 明細彈窗樣式 --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 999;
@@ -196,19 +187,17 @@
             border-radius: 10px; font-weight: bold; margin-top: 15px; color: #666; 
         }
 
-        /* --- [修改] 讓底部按鈕列變成 3 欄 --- */
-        /* 請務必確保這行在原始 CSS 的 .action-row 之後，以覆蓋舊設定 */
-        .action-row { display: grid !important; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
-        .btn-view { background: #e3e3e3; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 200px; background-color: rgba(0,0,0,0.8); color: #fff;
+            text-align: center; border-radius: 25px; padding: 12px; position: fixed; z-index: 300;
+            left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
+        @keyframes fadein { from {bottom: 60px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 60px; opacity: 0;} }
     </style>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <meta name="apple-mobile-web-app-title" content="計算機">
-
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
 
@@ -227,7 +216,7 @@
 
     <div class="cart-section">
         <div class="cart-title">
-            <span>已選項目 (可編輯名稱與價格)</span>
+            <span>已選項目 (點擊可編輯)</span>
             <span style="font-size:12px">打折?</span>
         </div>
         <div id="cartList">
@@ -236,7 +225,7 @@
 </main>
 
 <div class="checkout-bar">
-        <div class="discount-options">
+    <div class="discount-options">
         <div class="disc-btn selected" onclick="setDiscount(1, this)">原價</div>
         <div class="disc-btn" onclick="setDiscount(0.9, this)">9折</div>
         <div class="disc-btn" onclick="setDiscount(0.7, this)">7折</div>
@@ -260,6 +249,7 @@
 </div>
 
 <div id="toast">已複製到剪貼簿</div>
+
 <div id="detailModal" class="modal-overlay" onclick="if(event.target === this) closeDetailModal()">
     <div class="modal-card">
         <div class="receipt-header">
@@ -278,10 +268,9 @@
     </div>
 </div>
 
-
 <script>
     // ==========================================
-    // 1. 設定檔 (Configuration) - 您可以在此修改價格
+    // 1. 設定檔 (Configuration)
     // ==========================================
     const CONFIG = {
         footSurcharge: 100, // 足部加價金額
@@ -295,38 +284,35 @@
         // 服務菜單
         menu: {
             care: [
-                { name: '基礎保養', price: 500 },
-                { name: '嫩膚保養', price: 700 },
-                { name: '深層保養', price: 1000 }
+                { name: '基礎保養', price: 600 },
+                { name: '深層保養', price: 1200 },
+                { name: '去硬皮', price: 300 }
             ],
             gel: [
-                { name: '透明凝膠', price: 880 },
+                { name: '透明凝膠', price: 800 },
                 { name: '單色凝膠', price: 1000 },
-                { name: '鏡面粉', price: 1200 },
-                { name: '貓眼', price: 1100 },
-                { name: '法式', price: 1400 },
-                { name: '漸層', price: 1200 },
-                { name: '本月優惠款', price: 1499, isPromo: true }, // 特殊標記，不一定自動加價，看邏輯
-                { name: '底色', price: 300 }
+                { name: '貓眼凝膠', price: 1100 },
+                { name: '漸層/法式', price: 1200 },
+                { name: '本月優惠款', price: 1299, isFlat: true }, // 特價款通常不加價，設為 isFlat
+                { name: '暈染造型', price: 1300 }
             ],
             art: [
-                { name: '造型(A)', price: 100 },
-                { name: '造型(B)', price: 150 },
-                { name: '造型(C)', price: 200 },
+                { name: '造型(小)', price: 100 },
+                { name: '造型(中)', price: 150 },
+                { name: '造型(大)', price: 200 },
                 { name: '貼紙/飾品', price: 50 },
                 { name: '補強(單指)', price: 100 }
             ],
             remove: [
                 { name: '本店卸甲續作', price: 200 },
-                { name: '他店卸甲續作', price: 400 },
-                { name: '卸凝膠(四指以下)', price: 50 },
-                { name: '指甲油', price: 50 },
-                { name: '本店純卸甲(含修剪)', price: 500 },
-                { name: '他店純卸甲(含修剪)', price: 600 }
+                { name: '本店卸甲不續', price: 400 },
+                { name: '他店卸甲續作', price: 300 },
+                { name: '他店卸甲不續', price: 500 }
             ],
             adjust: [
                 { name: '首客折抵', price: -100, isFlat: true },
-                { name: '訂金扣除', price: -1000, isFlat: true }
+                { name: '訂金扣除', price: -500, isFlat: true },
+                { name: '延誤折抵', price: -200, isFlat: true }
             ]
         }
     };
@@ -346,7 +332,7 @@
     if (savedState) {
         const parsed = JSON.parse(savedState);
         state.cart = parsed.cart || [];
-        // 其他狀態重置，避免混亂
+        // 不還原折扣狀態，避免上次的設定干擾這次
     }
 
     // ==========================================
@@ -389,6 +375,7 @@
     // 渲染分類按鈕
     function renderCategories() {
         const container = document.getElementById('categoryList');
+        if(!container) return; // 安全檢查
         container.innerHTML = CONFIG.categories.map(cat => `
             <button class="cat-btn ${state.currentCat === cat.id ? 'active' : ''}" 
                     onclick="setCategory('${cat.id}')">
@@ -400,6 +387,7 @@
     // 渲染服務項目
     function renderItems() {
         const container = document.getElementById('itemList');
+        if(!container) return; // 安全檢查
         const items = CONFIG.menu[state.currentCat];
         let html = '';
 
@@ -422,7 +410,7 @@
             let isPlus = false;
 
             // 只有非固定價格項目 (isFlat != true) 且在足部模式下才加價
-            // 這裡假設所有常規項目都受足部加價影響，除了調整類
+            // 且調整類通常不加價
             if (state.mode === 'foot' && !item.isFlat && state.currentCat !== 'adjust') {
                 displayPrice += CONFIG.footSurcharge;
                 displayName = `足部${item.name}`;
@@ -537,7 +525,7 @@
         updateTotal();
     }
 
-        // [更新] 設定固定折扣 (點擊按鈕時觸發)
+    // 設定固定折扣 (點擊按鈕時觸發)
     function setDiscount(rate, btnElement) {
         state.globalDiscount = rate;
         
@@ -545,11 +533,12 @@
         document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
         if(btnElement) btnElement.classList.add('selected');
         
-        document.getElementById('customRateInput').value = ''; // 清空輸入
+        const input = document.getElementById('customRateInput');
+        if(input) input.value = ''; // 清空輸入
         updateTotal();
     }
 
-    // [新增] 應用自訂折扣 (輸入文字時觸發)
+    // 應用自訂折扣 (輸入文字時觸發)
     function applyCustomDiscount(val) {
         // 移除所有按鈕的選取狀態
         document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
@@ -574,8 +563,7 @@
         updateTotal();
     }
 
-
-    // 計算總金額 (Logic V4.0)
+    // 計算總金額 (Logic V4.1)
     function updateTotal() {
         let total = 0;
         
@@ -606,7 +594,58 @@
     }
 
     // ==========================================
-    // [新增] 明細彈窗功能
+    // 4. 輸出功能 (Generate Receipt)
+    // ==========================================
+    
+    // 輔助函式：取得顯示用的折扣文字
+    function getDiscountText(rate) {
+        if (rate === 1) return '原價';
+        
+        // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
+        if (Math.abs(rate % 0.1) < 0.0001) { 
+            return (rate * 10).toFixed(0) + '折';
+        }
+        // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
+        return (rate * 100).toFixed(0) + '折';
+    }
+
+    function copyReceipt() {
+        if (state.cart.length === 0) return;
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        let text = `【Jamie's Nail 服務明細】\n`;
+        text += `📅 ${dateStr}\n\n`;
+
+        state.cart.forEach(item => {
+            let line = `▪️ ${item.name} $${item.price}`;
+            
+            // 只有當該項目真的被打折了
+            if (item.discountActive && state.globalDiscount < 1) {
+                const discountedPrice = Math.round(item.price * state.globalDiscount);
+                const discountText = getDiscountText(state.globalDiscount);
+                line += ` (${discountText}後 $${discountedPrice})`;
+            }
+            
+            text += `${line}\n`;
+        });
+
+        text += `\n-------------------\n`;
+        text += `總金額：${document.getElementById('finalTotal').innerText}`;
+
+        // 複製到剪貼簿
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }).catch(err => {
+            alert('複製失敗，請手動截圖');
+        });
+    }
+
+    // ==========================================
+    // 5. 明細彈窗功能 (Receipt Modal)
     // ==========================================
     function showDetailModal() {
         if (state.cart.length === 0) {
@@ -636,21 +675,16 @@
                 </div>
             `;
 
-                       // --- 請替換原本判斷折扣文字的區塊 ---
-            let discountText = '';
-            const rate = state.globalDiscount;
-            
-            if (rate === 1) {
-                discountText = '原價';
-            } else if (rate % 0.1 === 0) {
-                // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
-                discountText = (rate * 10).toFixed(0) + '折';
-            } else {
-                // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
-                discountText = (rate * 100).toFixed(0) + '折';
+            // 如果有打折，顯示原價與折數說明 (灰色小字)
+            if (isDiscounted) {
+                const discountText = getDiscountText(state.globalDiscount);
+                html += `
+                    <div class="receipt-row sub">
+                        (原價$${item.price} ↘ ${discountText})
+                    </div>
+                `;
             }
-            // -------------------------------------
-
+        });
         container.innerHTML = html;
 
         // 3. 設定總金額
@@ -664,58 +698,9 @@
         document.getElementById('detailModal').classList.remove('show');
     }
 
-    // ==========================================
-    // 4. 輸出功能 (Generate Receipt)
-    // ==========================================
-    function copyReceipt() {
-        if (state.cart.length === 0) return;
-
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-
-        let text = `【Jamie's Nail 服務明細】\n`;
-        text += `📅 ${dateStr}\n\n`;
-
-        // 分類顯示項目 (邏輯：只要在清單裡就列出來)
-        state.cart.forEach(item => {
-            let line = `▪️ ${item.name} $${item.price}`;
-            
-                        // --- 請替換原本判斷折扣文字的區塊 ---
-            let discountText = '';
-            const rate = state.globalDiscount;
-            
-            if (rate === 1) {
-                discountText = '原價';
-            } else if (rate % 0.1 === 0) {
-                // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
-                discountText = (rate * 10).toFixed(0) + '折';
-            } else {
-                // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
-                discountText = (rate * 100).toFixed(0) + '折';
-            }
-            // -------------------------------------
-
-            
-            text += `${line}\n`;
-        });
-
-        text += `\n-------------------\n`;
-        text += `總金額：${document.getElementById('finalTotal').innerText}`;
-
-        // 複製到剪貼簿
-        navigator.clipboard.writeText(text).then(() => {
-            const toast = document.getElementById("toast");
-            toast.className = "show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-        }).catch(err => {
-            alert('複製失敗，請手動截圖');
-        });
-    }
-
     // 啟動
     init();
 
 </script>
 </body>
 </html>
-
