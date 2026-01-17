@@ -599,17 +599,23 @@
     // 4. 輸出功能 (Generate Receipt)
     // ==========================================
     
-    // 輔助函式：取得顯示用的折扣文字
+        // 輔助函式：取得顯示用的折扣文字 (修正版)
     function getDiscountText(rate) {
         if (rate === 1) return '原價';
         
-        // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
-        if (Math.abs(rate % 0.1) < 0.0001) { 
-            return (rate * 10).toFixed(0) + '折';
+        // 1. 先把小數點換算成百分比整數 (例如 0.9 -> 90, 0.85 -> 85)
+        let percent = Math.round(rate * 100);
+
+        // 2. 判斷是否整除 10 (例如 90, 80, 70)
+        if (percent % 10 === 0) {
+            // 如果是 90，除以 10 變成 9 -> 顯示 "9折"
+            return (percent / 10) + '折';
+        } else {
+            // 如果是 85, 88，不能整除 -> 顯示 "85折", "88折"
+            return percent + '折';
         }
-        // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
-        return (rate * 100).toFixed(0) + '折';
     }
+
 
     function copyReceipt() {
         if (state.cart.length === 0) return;
@@ -706,4 +712,5 @@
 </script>
 </body>
 </html>
+
 
