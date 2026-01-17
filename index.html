@@ -142,6 +142,47 @@
 
         @keyframes fadein { from {bottom: 60px; opacity: 0;} to {bottom: 80px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 60px; opacity: 0;} }
+
+                /* --- [新增] 明細彈窗樣式 --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 999;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        
+        .modal-card {
+            background: white; width: 90%; max-width: 350px;
+            border-radius: 15px; padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateY(20px); transition: all 0.3s;
+            display: flex; flex-direction: column; max-height: 80vh;
+        }
+        .modal-overlay.show .modal-card { transform: translateY(0); }
+
+        .receipt-header { text-align: center; border-bottom: 2px dashed #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .receipt-header h3 { margin: 0; color: #333; font-size: 18px; }
+        .receipt-header p { margin: 5px 0 0; color: #999; font-size: 12px; }
+
+        .receipt-body { flex: 1; overflow-y: auto; font-family: monospace; font-size: 14px; margin-bottom: 15px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .receipt-row.sub { color: #888; font-size: 12px; margin-top: -6px; margin-bottom: 8px; justify-content: flex-end; }
+        
+        .receipt-footer { border-top: 2px dashed #eee; padding-top: 15px; }
+        .receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: #333; }
+        
+        .btn-close { 
+            width: 100%; background: #f1f1f1; border: none; padding: 12px; 
+            border-radius: 10px; font-weight: bold; margin-top: 15px; color: #666; 
+        }
+
+        /* --- [修改] 讓底部按鈕列變成 3 欄 --- */
+        /* 請務必確保這行在原始 CSS 的 .action-row 之後，以覆蓋舊設定 */
+        .action-row { display: grid !important; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
+        .btn-view { background: #e3e3e3; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -192,11 +233,30 @@
 
     <div class="action-row">
         <button class="btn-reset" onclick="resetCart()">🗑️ 清空</button>
+        <button class="btn-view" onclick="showDetailModal()">📄 查看</button>
         <button class="btn-copy" onclick="copyReceipt()">📋 複製明細</button>
     </div>
 </div>
 
 <div id="toast">已複製到剪貼簿</div>
+<div id="detailModal" class="modal-overlay" onclick="if(event.target === this) closeDetailModal()">
+    <div class="modal-card">
+        <div class="receipt-header">
+            <h3>Jamie's Nail</h3>
+            <p id="receiptDate">2026/01/17</p>
+        </div>
+        <div class="receipt-body" id="receiptContent">
+            </div>
+        <div class="receipt-footer">
+            <div class="receipt-total">
+                <span>總金額</span>
+                <span id="receiptTotal">$0</span>
+            </div>
+            <button class="btn-close" onclick="closeDetailModal()">關閉 Close</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
     // ==========================================
@@ -498,6 +558,63 @@
     }
 
     // ==========================================
+    // [新增] 明細彈窗功能
+    // ==========================================
+    function showDetailModal() {
+        if (state.cart.length === 0) {
+            alert("購物車是空的喔！");
+            return;
+        }
+
+        // 1. 設定日期
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        document.getElementById('receiptDate').innerText = dateStr;
+
+        // 2. 生成內容
+        const container = document.getElementById('receiptContent');
+        let html = '';
+
+        state.cart.forEach(item => {
+            // 判斷是否打折
+            const isDiscounted = item.discountActive && state.globalDiscount < 1;
+            const finalPrice = isDiscounted ? Math.round(item.price * state.globalDiscount) : item.price;
+            
+            // 主標題行 (名稱 + 最終金額)
+            html += `
+                <div class="receipt-row">
+                    <span>${item.name}</span>
+                    <span>$${finalPrice}</span>
+                </div>
+            `;
+
+            // 如果有打折，顯示原價與折數說明 (灰色小字)
+            if (isDiscounted) {
+                const discountText = state.globalDiscount === 0.9 ? '9折' : 
+                                     state.globalDiscount === 0.85 ? '85折' : 
+                                     state.globalDiscount === 0.8 ? '8折' : 
+                                     state.globalDiscount === 0.95 ? '95折' : `${state.globalDiscount*10}折`;
+                html += `
+                    <div class="receipt-row sub">
+                        (原價$${item.price} ↘ ${discountText})
+                    </div>
+                `;
+            }
+        });
+        container.innerHTML = html;
+
+        // 3. 設定總金額
+        document.getElementById('receiptTotal').innerText = document.getElementById('finalTotal').innerText;
+
+        // 4. 顯示視窗
+        document.getElementById('detailModal').classList.add('show');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.remove('show');
+    }
+
+    // ==========================================
     // 4. 輸出功能 (Generate Receipt)
     // ==========================================
     function copyReceipt() {
@@ -545,6 +662,7 @@
 </script>
 </body>
 </html>
+
 
 
 
