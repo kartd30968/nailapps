@@ -2,18 +2,19 @@
 <html lang="zh-TW">
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
-
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <meta name="apple-mobile-web-app-title" content="Jamie's Nail">
-    
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jamie's Nail 報價系統</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         :root {
+            /* 原始配色 */
             --primary-color: #d4a5a5; /* 藕粉色主調 */
             --primary-dark: #b58585;
             --bg-color: #fdfbfb;
@@ -21,11 +22,15 @@
             --border-radius: 12px;
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
             --accent-foot: #e8c495; /* 足部模式暖色 */
+            
+            /* 新增：輸出圖片專用色票 (奶茶色系) */
+            --milk-tea-bg: #E6D0B3;
+            --milk-tea-text: #5D4037;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 240px; /* 留給底部結帳區更多空間 */ }
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 240px; }
 
         /* --- Header & Control --- */
         header {
@@ -37,28 +42,16 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        .mode-switch {
-            display: flex; background: #eee; border-radius: 20px; padding: 4px; margin-bottom: 10px;
-        }
-        .mode-btn {
-            flex: 1; border: none; background: transparent; padding: 10px; border-radius: 16px;
-            font-weight: bold; color: #888; transition: all 0.2s; cursor: pointer;
-        }
+        .mode-switch { display: flex; background: #eee; border-radius: 20px; padding: 4px; margin-bottom: 10px; }
+        .mode-btn { flex: 1; border: none; background: transparent; padding: 10px; border-radius: 16px; font-weight: bold; color: #888; transition: all 0.2s; cursor: pointer; }
         .mode-btn.active { background: white; color: var(--text-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .mode-btn.foot-active { color: #8a6d3b; }
-
-        /* 足部模式時的視覺變化 */
+        
         body.foot-mode .mode-btn.active { background: var(--accent-foot); color: white; }
         body.foot-mode { --primary-color: #e8c495; }
 
         /* --- Category Tabs --- */
-        .category-scroll {
-            display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; scrollbar-width: none;
-        }
-        .cat-btn {
-            white-space: nowrap; padding: 6px 16px; border-radius: 20px; border: 1px solid #ddd;
-            background: white; color: #666; font-size: 14px; cursor: pointer;
-        }
+        .category-scroll { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; scrollbar-width: none; }
+        .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; color: #666; font-size: 14px; cursor: pointer; }
         .cat-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
         /* --- Item Grid --- */
@@ -73,16 +66,9 @@
         .item-price { font-size: 13px; color: #888; }
         
         /* 自訂輸入區 */
-        .custom-input-group {
-            grid-column: span 2; display: flex; gap: 8px; background: white; padding: 10px;
-            border-radius: var(--border-radius); box-shadow: var(--shadow);
-        }
-        .custom-input-group input {
-            flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 8px; outline: none;
-        }
-        .custom-btn {
-            background: var(--text-color); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold;
-        }
+        .custom-input-group { grid-column: span 2; display: flex; gap: 8px; background: white; padding: 10px; border-radius: var(--border-radius); box-shadow: var(--shadow); }
+        .custom-input-group input { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 8px; outline: none; }
+        .custom-btn { background: var(--text-color); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; }
 
         /* --- Cart List --- */
         .cart-section { padding: 0 15px 20px 15px; }
@@ -94,34 +80,23 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: all 0.3s;
         }
         .cart-item.discount-active { border-left-color: #ff6b6b; background: #fff5f5; }
-        
         .check-col { padding-right: 10px; display: flex; flex-direction: column; align-items: center; }
         .discount-checkbox { transform: scale(1.3); accent-color: #ff6b6b; }
         .discount-label { font-size: 10px; color: #aaa; margin-top: 2px; }
 
         .info-col { flex: 1; }
-        .edit-input {
-            width: 100%; border: none; background: transparent; outline: none;
-            font-size: 15px; color: #333; margin-bottom: 2px;
-        }
-        .edit-price {
-            width: 100%; border: none; background: transparent; outline: none;
-            font-size: 14px; color: #666; font-weight: bold;
-        }
+        .edit-input { width: 100%; border: none; background: transparent; outline: none; font-size: 15px; color: #333; margin-bottom: 2px; }
+        .edit-price { width: 100%; border: none; background: transparent; outline: none; font-size: 14px; color: #666; font-weight: bold; }
         .cart-item.adjustment .edit-price { color: #d63031; }
 
         .action-col { padding-left: 10px; }
-        .del-btn {
-            background: #f1f1f1; color: #999; border: none; width: 30px; height: 30px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        }
+        .del-btn { background: #f1f1f1; color: #999; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
         /* --- Checkout Footer --- */
         .checkout-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: white; border-top: 1px solid #eee;
-            padding: 15px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-            z-index: 200;
+            padding: 15px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 200;
         }
         
         .discount-options { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
@@ -131,36 +106,28 @@
         }
         .disc-btn.selected { background: #4a4a4a; color: white; border-color: #4a4a4a; }
         
-        /* 自訂折扣輸入框樣式 */
         .disc-input-wrapper {
-            flex: 1.5; /* 比按鈕稍微寬一點 */
-            position: relative; display: flex; align-items: center;
+            flex: 1.5; position: relative; display: flex; align-items: center;
         }
         .disc-input-wrapper input {
-            width: 100%; padding: 8px 30px 8px 8px; /* 右邊留空給單位 */
-            border: 1px solid #ddd; border-radius: 8px;
-            font-size: 14px; text-align: center; outline: none;
-            background: #fff; color: #333; font-weight: bold;
-            transition: border 0.2s; height: 38px; /* 與按鈕等高 */
+            width: 100%; padding: 8px 30px 8px 8px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; text-align: center; outline: none; background: #fff; color: #333; font-weight: bold;
+            transition: border 0.2s; height: 38px;
         }
         .disc-input-wrapper input:focus { border-color: var(--primary-color); background: #fffbfb; }
-        .disc-unit { 
-            position: absolute; right: 10px; color: #999; 
-            font-size: 12px; pointer-events: none; font-weight: normal; 
-        }
+        .disc-unit { position: absolute; right: 10px; color: #999; font-size: 12px; pointer-events: none; font-weight: normal; }
 
         .total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
         .total-label { font-size: 14px; color: #888; }
         .total-amount { font-size: 28px; font-weight: 800; color: #333; line-height: 1; }
         
-        /* 底部按鈕三欄排列 */
         .action-row { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px; }
         .btn-reset { background: #f1f1f1; color: #666; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
         .btn-view { background: #e3e3e3; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
         .btn-copy { background: #4a4a4a; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-copy:active { background: #222; }
 
-        /* --- 明細彈窗樣式 --- */
+        /* --- 明細彈窗樣式 (UI 顯示用) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 999;
@@ -190,15 +157,73 @@
         .receipt-footer { border-top: 2px dashed #eee; padding-top: 15px; }
         .receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: #333; }
         
-        .btn-close { 
-            width: 100%; background: #f1f1f1; border: none; padding: 12px; 
-            border-radius: 10px; font-weight: bold; margin-top: 15px; color: #666; 
+        /* 彈窗按鈕區 - 修改為雙按鈕 */
+        .modal-actions {
+            display: flex; gap: 10px; margin-top: 15px;
         }
+        .btn-close { 
+            flex: 1; background: #f1f1f1; border: none; padding: 12px; 
+            border-radius: 10px; font-weight: bold; color: #666;
+        }
+        .btn-download {
+            flex: 1.5; background: var(--milk-tea-text); border: none; padding: 12px;
+            border-radius: 10px; font-weight: bold; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+
+        /* --- 隱藏的 Export 容器 (專門給 html2canvas 拍照用) --- */
+        #exportContainer {
+            position: fixed;
+            left: -9999px; top: 0; /* 隱藏在螢幕外 */
+            width: 420px; /* 固定寬度確保版型 */
+            min-height: 600px;
+            background-color: var(--milk-tea-bg); /* 1A & 4: 統一奶茶底色 */
+            padding: 40px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        /* 1A: 拍立得風格白卡片 */
+        .export-card {
+            width: 100%;
+            background: #fff;
+            padding: 30px;
+            border-radius: 4px; /* 拍立得通常圓角較小，或用 12px */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--milk-tea-text);
+        }
+        /* 3A: 襯線字體 Header */
+        .export-header { text-align: center; margin-bottom: 25px; }
+        .export-header h3 { 
+            font-family: "Georgia", "Times New Roman", serif; 
+            font-size: 28px; margin: 0; letter-spacing: 1px; color: var(--milk-tea-text);
+        }
+        .export-header p { font-size: 12px; color: #999; margin-top: 8px; font-family: monospace; }
+        
+        .export-body { margin-bottom: 20px; min-height: 100px; }
+        .export-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .export-row-sub { text-align: right; font-size: 12px; color: #888; margin-top: -8px; margin-bottom: 12px; }
+
+        /* 2C: 虛線裝飾 */
+        .export-divider { border-top: 2px dashed #ddd; margin: 20px 0; }
+        
+        .export-total { display: flex; justify-content: space-between; align-items: center; }
+        .export-total span:first-child { font-size: 14px; color: #888; }
+        .export-total span:last-child { font-size: 28px; font-weight: bold; color: var(--milk-tea-text); }
+        
+        /* 底部店舖資訊 */
+        .export-footer-info {
+            margin-top: 30px; padding-top: 20px; border-top: 1px solid #f0f0f0;
+            text-align: center; font-size: 12px; color: #888; line-height: 1.6;
+        }
+
 
         /* Toast Notification */
         #toast {
             visibility: hidden; min-width: 200px; background-color: rgba(0,0,0,0.8); color: #fff;
-            text-align: center; border-radius: 25px; padding: 12px; position: fixed; z-index: 300;
+            text-align: center; border-radius: 25px; padding: 12px; position: fixed; z-index: 9999;
             left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px;
         }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
@@ -214,21 +239,18 @@
         <button class="mode-btn active" onclick="setMode('hand')">🖐️ 手部</button>
         <button class="mode-btn" onclick="setMode('foot')">🦶 足部 (+$100)</button>
     </div>
-    <div class="category-scroll" id="categoryList">
-        </div>
+    <div class="category-scroll" id="categoryList"></div>
 </header>
 
 <main>
-    <div class="item-container" id="itemList">
-        </div>
+    <div class="item-container" id="itemList"></div>
 
     <div class="cart-section">
         <div class="cart-title">
             <span>已選項目 (點擊可編輯)</span>
             <span style="font-size:12px">打折?</span>
         </div>
-        <div id="cartList">
-            </div>
+        <div id="cartList"></div>
     </div>
 </main>
 
@@ -252,7 +274,7 @@
     <div class="action-row">
         <button class="btn-reset" onclick="resetCart()">🗑️ 清空</button>
         <button class="btn-view" onclick="showDetailModal()">📄 查看</button>
-        <button class="btn-copy" onclick="copyReceipt()">📋 複製明細</button>
+        <button class="btn-copy" onclick="copyReceipt()">📋 複製</button>
     </div>
 </div>
 
@@ -264,14 +286,42 @@
             <h3>Jamie's Nail</h3>
             <p id="receiptDate">2026/01/17</p>
         </div>
-        <div class="receipt-body" id="receiptContent">
-            </div>
+        <div class="receipt-body" id="receiptContent"></div>
         <div class="receipt-footer">
             <div class="receipt-total">
                 <span>總金額</span>
                 <span id="receiptTotal">$0</span>
             </div>
-            <button class="btn-close" onclick="closeDetailModal()">關閉 Close</button>
+            <div class="modal-actions">
+                <button class="btn-close" onclick="closeDetailModal()">關閉</button>
+                <button class="btn-download" onclick="downloadReceiptImage()">
+                    📥 存成圖片
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="exportContainer">
+    <div class="export-card">
+        <div class="export-header">
+            <h3>Jamie's Nail</h3>
+            <p id="exportDate">DATE</p>
+        </div>
+        
+        <div class="export-body" id="exportContent">
+            </div>
+
+        <div class="export-divider"></div>
+
+        <div class="export-total">
+            <span>TOTAL AMOUNT</span>
+            <span id="exportTotalVal">$0</span>
+        </div>
+
+        <div class="export-footer-info">
+            IG: @0_jamie.s_nail_0<br>
+            Line: @sfd4831c
         </div>
     </div>
 </div>
@@ -281,7 +331,7 @@
     // 1. 設定檔 (Configuration)
     // ==========================================
     const CONFIG = {
-        footSurcharge: 100, // 足部加價金額
+        footSurcharge: 100,
         categories: [
             { id: 'care', name: '基礎保養' },
             { id: 'gel', name: '凝膠項目' },
@@ -289,7 +339,6 @@
             { id: 'remove', name: '卸甲/維護' },
             { id: 'adjust', name: '調整/折扣' }
         ],
-        // 服務菜單
         menu: {
             care: [
                 { name: '基礎保養', price: 500 },
@@ -303,7 +352,7 @@
                 { name: '貓眼', price: 1100 },
                 { name: '法式', price: 1300 },
                 { name: '漸層', price: 1200 },
-                { name: '優惠款', price: 1399 }, // 特價款通常不加價，設為 isFlat
+                { name: '優惠款', price: 1399, isFlat: true }, 
                 { name: '底色', price: 300 }
             ],
             art: [
@@ -333,23 +382,20 @@
     let state = {
         mode: 'hand', // 'hand' or 'foot'
         currentCat: 'gel',
-        cart: [], // { id, name, price, discountActive }
-        globalDiscount: 1 // 1 = 原價, 0.9 = 9折
+        cart: [], 
+        globalDiscount: 1 
     };
 
-    // 嘗試讀取 LocalStorage
-    const savedState = localStorage.getItem('jamieNailStateV4');
+    const savedState = localStorage.getItem('jamieNailStateV5');
     if (savedState) {
         const parsed = JSON.parse(savedState);
         state.cart = parsed.cart || [];
-        // 不還原折扣狀態，避免上次的設定干擾這次
     }
 
     // ==========================================
     // 3. 核心功能 (Functions)
     // ==========================================
 
-    // 初始化
     function init() {
         renderCategories();
         renderItems();
@@ -357,11 +403,8 @@
         updateTotal();
     }
 
-    // 切換 手部/足部
     function setMode(mode) {
         state.mode = mode;
-        
-        // UI 更新
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
         if (mode === 'foot') {
             document.querySelector('button[onclick="setMode(\'foot\')"]').classList.add('active');
@@ -370,22 +413,18 @@
             document.querySelector('button[onclick="setMode(\'hand\')"]').classList.add('active');
             document.body.classList.remove('foot-mode');
         }
-
-        // 重新渲染項目價格 (預覽用)
         renderItems();
     }
 
-    // 切換分類
     function setCategory(catId) {
         state.currentCat = catId;
         renderCategories();
         renderItems();
     }
 
-    // 渲染分類按鈕
     function renderCategories() {
         const container = document.getElementById('categoryList');
-        if(!container) return; // 安全檢查
+        if(!container) return;
         container.innerHTML = CONFIG.categories.map(cat => `
             <button class="cat-btn ${state.currentCat === cat.id ? 'active' : ''}" 
                     onclick="setCategory('${cat.id}')">
@@ -394,14 +433,12 @@
         `).join('');
     }
 
-    // 渲染服務項目
     function renderItems() {
         const container = document.getElementById('itemList');
-        if(!container) return; // 安全檢查
+        if(!container) return;
         const items = CONFIG.menu[state.currentCat];
         let html = '';
-
-        // 如果是造型或調整，顯示自訂輸入框
+        
         if (state.currentCat === 'art' || state.currentCat === 'adjust') {
             html += `
                 <div class="custom-input-group">
@@ -412,15 +449,11 @@
             `;
         }
 
-        // 產生按鈕列表
         html += items.map(item => {
-            // 計算顯示價格
             let displayPrice = item.price;
             let displayName = item.name;
             let isPlus = false;
 
-            // 只有非固定價格項目 (isFlat != true) 且在足部模式下才加價
-            // 且調整類通常不加價
             if (state.mode === 'foot' && !item.isFlat && state.currentCat !== 'adjust') {
                 displayPrice += CONFIG.footSurcharge;
                 displayName = `足部${item.name}`;
@@ -442,13 +475,12 @@
         container.innerHTML = html;
     }
 
-    // 加入購物車
     function addToCart(name, price) {
         const newItem = {
             id: Date.now(),
             name: name,
             price: parseInt(price),
-            discountActive: false // 預設不打折
+            discountActive: false
         };
         state.cart.push(newItem);
         saveState();
@@ -456,25 +488,20 @@
         updateTotal();
     }
 
-    // 加入自訂項目
     function addCustomItem() {
         const nameInput = document.getElementById('customName');
         const priceInput = document.getElementById('customPrice');
         const name = nameInput.value.trim();
         const price = parseInt(priceInput.value);
-
         if (name && !isNaN(price)) {
             let finalName = name;
-            // 如果是在足部模式且不是負數調整，自動加上前綴方便辨識 (可選)
             if (state.mode === 'foot' && price > 0) finalName = `(足) ${name}`;
-            
             addToCart(finalName, price);
             nameInput.value = '';
             priceInput.value = '';
         }
     }
 
-    // 渲染購物車 (核心)
     function renderCart() {
         const container = document.getElementById('cartList');
         if (state.cart.length === 0) {
@@ -509,7 +536,6 @@
         }).join('');
     }
 
-    // 購物車操作函式
     function removeItem(index) {
         state.cart.splice(index, 1);
         saveState();
@@ -531,62 +557,42 @@
     function toggleDiscount(index) {
         state.cart[index].discountActive = !state.cart[index].discountActive;
         saveState();
-        renderCart(); // 重新渲染以更新背景色
+        renderCart();
         updateTotal();
     }
 
-    // 設定固定折扣 (點擊按鈕時觸發)
     function setDiscount(rate, btnElement) {
         state.globalDiscount = rate;
-        
-        // UI 更新：亮起按鈕，並清空自訂輸入框
         document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
         if(btnElement) btnElement.classList.add('selected');
         
         const input = document.getElementById('customRateInput');
-        if(input) input.value = ''; // 清空輸入
+        if(input) input.value = ''; 
         updateTotal();
     }
 
-    // 應用自訂折扣 (輸入文字時觸發)
     function applyCustomDiscount(val) {
-        // 移除所有按鈕的選取狀態
         document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
-
         if (!val) {
-            state.globalDiscount = 1; // 空白則回歸原價
+            state.globalDiscount = 1;
         } else {
             let num = parseFloat(val);
-            // 智慧轉換邏輯
-            if (num > 10) { 
-                // 輸入 85 代表 0.85 (85折/85%)
-                state.globalDiscount = num / 100; 
-            } else if (num >= 1 && num <= 10) {
-                // 輸入 8 代表 0.8 (8折)
-                // 輸入 7.5 代表 0.75 (75折)
-                state.globalDiscount = num / 10;
-            } else if (num < 1 && num > 0) {
-                // 輸入 0.88 代表 0.88
-                state.globalDiscount = num;
-            }
+            if (num > 10) state.globalDiscount = num / 100;
+            else if (num >= 1 && num <= 10) state.globalDiscount = num / 10;
+            else if (num < 1 && num > 0) state.globalDiscount = num;
         }
         updateTotal();
     }
 
-    // 計算總金額 (Logic V4.1)
     function updateTotal() {
         let total = 0;
-        
         state.cart.forEach(item => {
             if (item.discountActive) {
-                // 有勾選折扣的項目：打折後四捨五入
                 total += Math.round(item.price * state.globalDiscount);
             } else {
-                // 沒勾選的項目：原價 (包含負數調整)
                 total += item.price;
             }
         });
-
         document.getElementById('finalTotal').innerText = '$' + total;
     }
 
@@ -600,68 +606,50 @@
     }
 
     function saveState() {
-        localStorage.setItem('jamieNailStateV4', JSON.stringify({ cart: state.cart }));
+        localStorage.setItem('jamieNailStateV5', JSON.stringify({ cart: state.cart }));
     }
 
     // ==========================================
     // 4. 輸出功能 (Generate Receipt)
     // ==========================================
-    
-        // 輔助函式：取得顯示用的折扣文字 (修正版)
     function getDiscountText(rate) {
         if (rate === 1) return '原價';
-        
-        // 1. 先把小數點換算成百分比整數 (例如 0.9 -> 90, 0.85 -> 85)
         let percent = Math.round(rate * 100);
-
-        // 2. 判斷是否整除 10 (例如 90, 80, 70)
-        if (percent % 10 === 0) {
-            // 如果是 90，除以 10 變成 9 -> 顯示 "9折"
-            return (percent / 10) + '折';
-        } else {
-            // 如果是 85, 88，不能整除 -> 顯示 "85折", "88折"
-            return percent + '折';
-        }
+        if (percent % 10 === 0) return (percent / 10) + '折';
+        else return percent + '折';
     }
-
 
     function copyReceipt() {
         if (state.cart.length === 0) return;
-
         const now = new Date();
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
 
         let text = `【Jamie's Nail 服務明細】\n`;
         text += `📅 ${dateStr}\n\n`;
-
         state.cart.forEach(item => {
             let line = `▪️ ${item.name} $${item.price}`;
-            
-            // 只有當該項目真的被打折了
             if (item.discountActive && state.globalDiscount < 1) {
                 const discountedPrice = Math.round(item.price * state.globalDiscount);
                 const discountText = getDiscountText(state.globalDiscount);
                 line += ` (${discountText}後 $${discountedPrice})`;
             }
-            
             text += `${line}\n`;
         });
-
         text += `\n-------------------\n`;
-        text += `總金額：${document.getElementById('finalTotal').innerText}`;
+        text += `總金額：${document.getElementById('finalTotal').innerText}\n`;
+        text += `IG: @0_jamie.s_nail_0\nLine: @sfd4831c`;
 
-        // 複製到剪貼簿
         navigator.clipboard.writeText(text).then(() => {
             const toast = document.getElementById("toast");
             toast.className = "show";
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }).catch(err => {
-            alert('複製失敗，請手動截圖');
+            alert('複製失敗');
         });
     }
 
     // ==========================================
-    // 5. 明細彈窗功能 (Receipt Modal)
+    // 5. 明細彈窗與圖片生成 (Receipt Modal & Image)
     // ==========================================
     function showDetailModal() {
         if (state.cart.length === 0) {
@@ -669,44 +657,54 @@
             return;
         }
 
-        // 1. 設定日期
         const now = new Date();
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        const dateStr = `${now.getFullYear()}.${(now.getMonth()+1).toString().padStart(2,'0')}.${now.getDate().toString().padStart(2,'0')}`;
+        
+        // 更新 UI 彈窗
         document.getElementById('receiptDate').innerText = dateStr;
-
-        // 2. 生成內容
         const container = document.getElementById('receiptContent');
+        
+        // 更新 Export 容器 (隱藏版)
+        document.getElementById('exportDate').innerText = dateStr;
+        const exportContainer = document.getElementById('exportContent');
+
         let html = '';
+        let exportHtml = '';
 
         state.cart.forEach(item => {
-            // 判斷是否打折
             const isDiscounted = item.discountActive && state.globalDiscount < 1;
             const finalPrice = isDiscounted ? Math.round(item.price * state.globalDiscount) : item.price;
             
-            // 主標題行 (名稱 + 最終金額)
+            // UI HTML
             html += `
                 <div class="receipt-row">
                     <span>${item.name}</span>
                     <span>$${finalPrice}</span>
                 </div>
             `;
-
-            // 如果有打折，顯示原價與折數說明 (灰色小字)
             if (isDiscounted) {
-                const discountText = getDiscountText(state.globalDiscount);
-                html += `
-                    <div class="receipt-row sub">
-                        (原價$${item.price} ↘ ${discountText})
-                    </div>
-                `;
+                html += `<div class="receipt-row sub">(原價$${item.price} ↘ ${getDiscountText(state.globalDiscount)})</div>`;
+            }
+
+            // Export HTML (結構類似但分開處理)
+            exportHtml += `
+                <div class="export-row">
+                    <span>${item.name}</span>
+                    <span>$${finalPrice}</span>
+                </div>
+            `;
+            if (isDiscounted) {
+                exportHtml += `<div class="export-row-sub">Original $${item.price} (${getDiscountText(state.globalDiscount)})</div>`;
             }
         });
+
         container.innerHTML = html;
+        exportContainer.innerHTML = exportHtml;
 
-        // 3. 設定總金額
-        document.getElementById('receiptTotal').innerText = document.getElementById('finalTotal').innerText;
+        const totalTxt = document.getElementById('finalTotal').innerText;
+        document.getElementById('receiptTotal').innerText = totalTxt;
+        document.getElementById('exportTotalVal').innerText = totalTxt;
 
-        // 4. 顯示視窗
         document.getElementById('detailModal').classList.add('show');
     }
 
@@ -714,13 +712,54 @@
         document.getElementById('detailModal').classList.remove('show');
     }
 
-    // 啟動
-    init();
+    // 生成並下載/分享圖片
+    function downloadReceiptImage() {
+        const element = document.getElementById('exportContainer');
+        const btn = document.querySelector('.btn-download');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ 處理中...';
+        btn.disabled = true;
 
+        html2canvas(element, {
+            scale: 3, // 高畫質 (Retina)
+            backgroundColor: null, // 使用 CSS 定義的奶茶色
+            useCORS: true
+        }).then(canvas => {
+            canvas.toBlob(blob => {
+                const fileName = `JamiesNail_${Date.now()}.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
+
+                // 嘗試使用原生分享 (手機適用)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Jamie\'s Nail Receipt',
+                        text: 'Thank you for coming!'
+                    }).catch(err => {
+                        console.log('Share failed', err);
+                        forceDownload(blob, fileName); // 分享失敗則下載
+                    });
+                } else {
+                    // 電腦或不支援分享的環境 -> 直接下載
+                    forceDownload(blob, fileName);
+                }
+
+                // 復原按鈕
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 'image/png');
+        });
+    }
+
+    function forceDownload(blob, filename) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    init();
 </script>
 </body>
 </html>
-
-
-
-
