@@ -121,6 +121,24 @@
             flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 8px;
             font-size: 13px; color: #666; white-space: nowrap; min-width: 60px; text-align: center;
         }
+        /* --- [新增] 自訂折扣輸入框樣式 --- */
+        .disc-input-wrapper {
+            flex: 1.5; /* 比按鈕稍微寬一點 */
+            position: relative; display: flex; align-items: center;
+        }
+        .disc-input-wrapper input {
+            width: 100%; padding: 8px 30px 8px 8px; /* 右邊留空給單位 */
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; text-align: center; outline: none;
+            background: #fff; color: #333; font-weight: bold;
+            transition: border 0.2s;
+        }
+        .disc-input-wrapper input:focus { border-color: var(--primary-color); background: #fffbfb; }
+        .disc-unit { 
+            position: absolute; right: 10px; color: #999; 
+            font-size: 12px; pointer-events: none; font-weight: normal; 
+        }
+
         .disc-btn.selected { background: #4a4a4a; color: white; border-color: #4a4a4a; }
         
         .total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
@@ -218,12 +236,15 @@
 </main>
 
 <div class="checkout-bar">
-    <div class="discount-options">
+        <div class="discount-options">
         <div class="disc-btn selected" onclick="setDiscount(1, this)">原價</div>
-        <div class="disc-btn" onclick="setDiscount(0.95, this)">95折</div>
         <div class="disc-btn" onclick="setDiscount(0.9, this)">9折</div>
-        <div class="disc-btn" onclick="setDiscount(0.85, this)">85折</div>
-        <div class="disc-btn" onclick="setDiscount(0.8, this)">8折</div>
+        <div class="disc-btn" onclick="setDiscount(0.7, this)">7折</div>
+        
+        <div class="disc-input-wrapper">
+            <input type="number" id="customRateInput" placeholder="自訂" oninput="applyCustomDiscount(this.value)">
+            <span class="disc-unit">折/%</span>
+        </div>
     </div>
 
     <div class="total-row">
@@ -516,16 +537,43 @@
         updateTotal();
     }
 
-    // 設定全域折扣
+        // [更新] 設定固定折扣 (點擊按鈕時觸發)
     function setDiscount(rate, btnElement) {
         state.globalDiscount = rate;
         
-        // 更新按鈕樣式
+        // UI 更新：亮起按鈕，並清空自訂輸入框
         document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
-        btnElement.classList.add('selected');
+        if(btnElement) btnElement.classList.add('selected');
         
+        document.getElementById('customRateInput').value = ''; // 清空輸入
         updateTotal();
     }
+
+    // [新增] 應用自訂折扣 (輸入文字時觸發)
+    function applyCustomDiscount(val) {
+        // 移除所有按鈕的選取狀態
+        document.querySelectorAll('.disc-btn').forEach(btn => btn.classList.remove('selected'));
+
+        if (!val) {
+            state.globalDiscount = 1; // 空白則回歸原價
+        } else {
+            let num = parseFloat(val);
+            // 智慧轉換邏輯
+            if (num > 10) { 
+                // 輸入 85 代表 0.85 (85折/85%)
+                state.globalDiscount = num / 100; 
+            } else if (num >= 1 && num <= 10) {
+                // 輸入 8 代表 0.8 (8折)
+                // 輸入 7.5 代表 0.75 (75折)
+                state.globalDiscount = num / 10;
+            } else if (num < 1 && num > 0) {
+                // 輸入 0.88 代表 0.88
+                state.globalDiscount = num;
+            }
+        }
+        updateTotal();
+    }
+
 
     // 計算總金額 (Logic V4.0)
     function updateTotal() {
@@ -588,19 +636,21 @@
                 </div>
             `;
 
-            // 如果有打折，顯示原價與折數說明 (灰色小字)
-            if (isDiscounted) {
-                const discountText = state.globalDiscount === 0.9 ? '9折' : 
-                                     state.globalDiscount === 0.85 ? '85折' : 
-                                     state.globalDiscount === 0.8 ? '8折' : 
-                                     state.globalDiscount === 0.95 ? '95折' : `${state.globalDiscount*10}折`;
-                html += `
-                    <div class="receipt-row sub">
-                        (原價$${item.price} ↘ ${discountText})
-                    </div>
-                `;
+                       // --- 請替換原本判斷折扣文字的區塊 ---
+            let discountText = '';
+            const rate = state.globalDiscount;
+            
+            if (rate === 1) {
+                discountText = '原價';
+            } else if (rate % 0.1 === 0) {
+                // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
+                discountText = (rate * 10).toFixed(0) + '折';
+            } else {
+                // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
+                discountText = (rate * 100).toFixed(0) + '折';
             }
-        });
+            // -------------------------------------
+
         container.innerHTML = html;
 
         // 3. 設定總金額
@@ -630,15 +680,21 @@
         state.cart.forEach(item => {
             let line = `▪️ ${item.name} $${item.price}`;
             
-            // 只有當該項目真的被打折了 (開關開啟 + 全域折扣不是原價)
-            if (item.discountActive && state.globalDiscount < 1) {
-                const discountedPrice = Math.round(item.price * state.globalDiscount);
-                const discountText = state.globalDiscount === 0.9 ? '9折' : 
-                                     state.globalDiscount === 0.85 ? '85折' : 
-                                     state.globalDiscount === 0.8 ? '8折' : 
-                                     state.globalDiscount === 0.95 ? '95折' : '折扣';
-                line += ` (${discountText}後 $${discountedPrice})`;
+                        // --- 請替換原本判斷折扣文字的區塊 ---
+            let discountText = '';
+            const rate = state.globalDiscount;
+            
+            if (rate === 1) {
+                discountText = '原價';
+            } else if (rate % 0.1 === 0) {
+                // 如果是 0.9, 0.8, 0.7 -> 顯示 "9折", "8折"
+                discountText = (rate * 10).toFixed(0) + '折';
+            } else {
+                // 如果是 0.85, 0.77 -> 顯示 "85折", "77折"
+                discountText = (rate * 100).toFixed(0) + '折';
             }
+            // -------------------------------------
+
             
             text += `${line}\n`;
         });
@@ -662,7 +718,4 @@
 </script>
 </body>
 </html>
-
-
-
 
