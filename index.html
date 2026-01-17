@@ -147,7 +147,7 @@
 
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <meta name="apple-mobile-web-app-title" content="你的App名稱">
+    <meta name="apple-mobile-web-app-title" content="計算機">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
@@ -214,35 +214,38 @@
         // 服務菜單
         menu: {
             care: [
-                { name: '基礎保養', price: 600 },
-                { name: '深層保養', price: 1200 },
-                { name: '去硬皮', price: 300 }
+                { name: '基礎保養', price: 500 },
+                { name: '嫩膚保養', price: 700 },
+                { name: '深層保養', price: 1000 }
             ],
             gel: [
-                { name: '透明凝膠', price: 800 },
+                { name: '透明凝膠', price: 880 },
                 { name: '單色凝膠', price: 1000 },
-                { name: '貓眼凝膠', price: 1100 },
-                { name: '漸層/法式', price: 1200 },
-                { name: '本月優惠款', price: 1299, isPromo: true }, // 特殊標記，不一定自動加價，看邏輯
-                { name: '暈染造型', price: 1300 }
+                { name: '鏡面粉', price: 1200 },
+                { name: '貓眼', price: 1100 },
+                { name: '法式', price: 1400 },
+                { name: '漸層', price: 1200 },
+                { name: '本月優惠款', price: 1499, isPromo: true }, // 特殊標記，不一定自動加價，看邏輯
+                { name: '底色', price: 300 }
             ],
             art: [
-                { name: '造型(小)', price: 100 },
-                { name: '造型(中)', price: 150 },
-                { name: '造型(大)', price: 200 },
+                { name: '造型(A)', price: 100 },
+                { name: '造型(B)', price: 150 },
+                { name: '造型(C)', price: 200 },
                 { name: '貼紙/飾品', price: 50 },
                 { name: '補強(單指)', price: 100 }
             ],
             remove: [
                 { name: '本店卸甲續作', price: 200 },
-                { name: '本店卸甲不續', price: 400 },
-                { name: '他店卸甲續作', price: 300 },
-                { name: '他店卸甲不續', price: 500 }
+                { name: '他店卸甲續作', price: 400 },
+                { name: '卸凝膠(四指以下)', price: 50 },
+                { name: '指甲油', price: 50 },
+                { name: '本店純卸甲(含修剪)', price: 500 },
+                { name: '他店純卸甲(含修剪)', price: 600 }
             ],
             adjust: [
                 { name: '首客折抵', price: -100, isFlat: true },
-                { name: '訂金扣除', price: -500, isFlat: true },
-                { name: '延誤折抵', price: -200, isFlat: true }
+                { name: '訂金扣除', price: -1000, isFlat: true }
             ]
         }
     };
@@ -542,5 +545,6 @@
 </script>
 </body>
 </html>
+
 
 
